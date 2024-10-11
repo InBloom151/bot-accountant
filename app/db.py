@@ -8,9 +8,9 @@ def init_db():
 
     # Таблица для хранения показаний счетчиков
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS units (
-            water_unit REAL,
-            electricity_unit REAL
+        CREATE TABLE IF NOT EXISTS meters (
+            water_meter REAL,
+            electricity_meter REAL
         )
     ''')
 

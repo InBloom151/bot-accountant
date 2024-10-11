@@ -13,6 +13,8 @@ from db import init_db, get_connection
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+init_db()
+
 class IsAllowedUser(Filter):
     async def __call__(self, message: types.Message) -> bool:
         return message.from_user.id in ALLOWED_USERS
@@ -69,9 +71,9 @@ async def process_electricity_meter(message: types.Message, state: FSMContext):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO meters (user_id, water_meter, electricity_meter)
-        VALUES (?, ?, ?)
-    ''', (message.from_user.id, water_meter, electricity_meter))
+        INSERT INTO meters (water_meter, electricity_meter)
+        VALUES (?, ?)
+    ''', (water_meter, electricity_meter))
     conn.commit()
     conn.close()
 
@@ -80,6 +82,9 @@ async def process_electricity_meter(message: types.Message, state: FSMContext):
 
 async def main():
     await dp.start_polling(bot)
+
+
+''' SET COSTS '''
 
 if __name__ == '__main__':
     asyncio.run(main())
