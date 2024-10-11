@@ -33,14 +33,6 @@ def init_db():
         )
     ''')
 
-    # Таблица для хранения итоговой стоимости
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS total_cost (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            total_cost REAL
-        )
-    ''')
-
     conn.commit()
     conn.close()
 

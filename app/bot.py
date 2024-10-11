@@ -193,8 +193,42 @@ async def process_current_electricity_meter(message: types.Message, state: FSMCo
 ''' CALCULATE '''
 @dp.message(F.text == buttons[3], IsAllowedUser())
 async def cmd_calculate_cost(message: types.Message, state: FSMContext):
-    await state.set_state(CalculateStates.new_water_meter)
-    await message.answer("Введите текущее значение счетчика воды:")
+    empty_data = []
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM meters WHERE id = 1")
+    meters = cursor.fetchone()
+    if not meters:
+        empty_data.append("изначальные показания счетчиков")
+    cursor.execute("SELECT * FROM current_meters WHERE id = 1")
+    current_meters = cursor.fetchone()
+    if not current_meters:
+        empty_data.append("текущие показания счетчиков")
+    cursor.execute("SELECT * FROM costs WHERE id = 1")
+    costs = cursor.fetchone()
+    if not costs:
+        empty_data.append("тарифы")
+    conn.close()
+    if len(empty_data) > 0:
+        await message.answer(
+            f"Не заполнены {', '.join(empty_data)}",
+            reply_markup=keyboard
+        )
+    else:
+        _, old_meter_water, old_meter_electricity = meters
+        _, current_meter_water, current_meter_electricity = current_meters
+        _, water_cost, electricity_cost = costs
+
+        water_dif = current_meter_water - old_meter_water
+        electricity_dif = current_meter_electricity - old_meter_electricity
+
+        water_total = water_dif * water_cost
+        electricity_total = electricity_dif * electricity_cost
+        await message.answer(
+            f"Вода: {water_total}\nСвет: {electricity_total}",
+            reply_markup=keyboard
+        )
+    await state.clear()
 
 
 async def main():
