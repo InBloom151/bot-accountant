@@ -74,10 +74,18 @@ async def process_electricity_meter(message: types.Message, state: FSMContext):
 
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO meters (water_meter, electricity_meter)
-        VALUES (?, ?)
-    ''', (water_meter, electricity_meter))
+    cursor.execute("SELECT COUNT(*) FROM meters WHERE id = 1")
+    exists = cursor.fetchone()[0]
+    if exists:
+        cursor.execute('''
+            UPDATE meters SET water_meter = ?, electricity_meter = ?
+            WHERE id = 1
+        ''', (water_meter, electricity_meter))
+    else:
+        cursor.execute('''
+            INSERT INTO meters (water_meter, electricity_meter)
+            VALUES (?, ?)
+        ''', (water_meter, electricity_meter))
     conn.commit()
     conn.close()
 
@@ -114,10 +122,18 @@ async def process_electricity_cost(message: types.Message, state: FSMContext):
 
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO costs (water_cost, electricity_cost)
-        VALUES (?, ?)
-    ''', (water_cost, electricity_cost))
+    cursor.execute("SELECT COUNT(*) FROM costs WHERE id = 1")
+    exists = cursor.fetchone()[0]
+    if exists:
+        cursor.execute('''
+            UPDATE costs SET water_meter = ?, electricity_meter = ?
+            WHERE id = 1
+        ''', (water_cost, electricity_cost))
+    else:
+        cursor.execute('''
+            INSERT INTO costs (water_cost, electricity_cost)
+            VALUES (?, ?)
+        ''', (water_cost, electricity_cost))
     conn.commit()
     conn.close()
 
@@ -172,6 +188,13 @@ async def process_current_electricity_meter(message: types.Message, state: FSMCo
     conn.commit()
     conn.close()
     await state.clear()
+
+
+''' CALCULATE '''
+@dp.message(F.text == buttons[3], IsAllowedUser())
+async def cmd_calculate_cost(message: types.Message, state: FSMContext):
+    await state.set_state(CalculateStates.new_water_meter)
+    await message.answer("Введите текущее значение счетчика воды:")
 
 
 async def main():
