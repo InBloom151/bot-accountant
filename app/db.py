@@ -9,6 +9,16 @@ def init_db():
     # Таблица для хранения показаний счетчиков
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS meters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            water_meter REAL,
+            electricity_meter REAL
+        )
+    ''')
+
+    # Таблица для хранения текущих показаний счетчиков
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS current_meters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             water_meter REAL,
             electricity_meter REAL
         )
@@ -17,6 +27,7 @@ def init_db():
     # Таблица для хранения стоимости ресурсов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS costs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             water_cost REAL,
             electricity_cost REAL
         )
@@ -25,6 +36,7 @@ def init_db():
     # Таблица для хранения итоговой стоимости
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS total_cost (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             total_cost REAL
         )
     ''')
