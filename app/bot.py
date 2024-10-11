@@ -40,7 +40,7 @@ class CalculateStates(StatesGroup):
 async def cmd_start(message: types.Message):
     await message.answer("Добро пожаловать! Выберите действие:", reply_markup=keyboard)
 
-''' SET UNITS '''
+''' SET UTILITIES '''
 
 @dp.message(F.text == buttons[0], IsAllowedUser())
 async def cmd_start_meter_input(message: types.Message, state: FSMContext):
@@ -85,6 +85,47 @@ async def main():
 
 
 ''' SET COSTS '''
+
+@dp.message(F.text == buttons[1], IsAllowedUser())
+async def cmd_start_cost_input(message: types.Message, state: FSMContext):
+    await state.set_state(CostStates.water_cost)
+    await message.answer("Введите текущую стоимость воды:")
+
+@dp.message(CostStates.water_cost, IsAllowedUser())
+async def process_water_cost(message: types.Message, state: FSMContext):
+    try:
+        water_cost = float(message.text)
+    except ValueError:
+        await message.answer("Пожалуйста, введите числовое значение.")
+        return
+    await state.update_data(water_cost=water_cost)
+    await state.set_state(CostStates.electricity_cost)
+    await message.answer("Введите текущую стоимость электроэнергии (руб/кВт·ч):")
+
+@dp.message(CostStates.electricity_cost, IsAllowedUser())
+async def process_electricity_cost(message: types.Message, state: FSMContext):
+    try:
+        electricity_cost = float(message.text)
+    except ValueError:
+        await message.answer("Пожалуйста, введите числовое значение.")
+        return
+    data = await state.get_data()
+    water_cost = data.get('water_cost')
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO costs (water_cost, electricity_cost)
+        VALUES (?, ?)
+    ''', (water_cost, electricity_cost))
+    conn.commit()
+    conn.close()
+
+    await message.answer("Стоимость ресурсов сохранена.", reply_markup=keyboard)
+    await state.clear()
+    
+''' UPDATE UTILITIES '''
+''' UPDATE COSTS '''
 
 if __name__ == '__main__':
     asyncio.run(main())
